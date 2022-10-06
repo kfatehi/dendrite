@@ -83,6 +83,7 @@ func (s *ServerStatistics) duration(count uint32) time.Duration {
 func (s *ServerStatistics) cancel() {
 	s.blacklisted.Store(false)
 	s.backoffUntil.Store(time.Time{})
+	s.backoffCount.Store(0)
 	select {
 	case s.interrupt <- struct{}{}:
 	default:
@@ -96,7 +97,6 @@ func (s *ServerStatistics) cancel() {
 func (s *ServerStatistics) Success() {
 	s.cancel()
 	s.successCounter.Inc()
-	s.backoffCount.Store(0)
 	if s.statistics.DB != nil {
 		if err := s.statistics.DB.RemoveServerFromBlacklist(s.serverName); err != nil {
 			logrus.WithError(err).Errorf("Failed to remove %q from blacklist", s.serverName)
@@ -172,6 +172,11 @@ func (s *ServerStatistics) BackoffInfo() (*time.Time, bool) {
 // otherwise.
 func (s *ServerStatistics) Blacklisted() bool {
 	return s.blacklisted.Load()
+}
+
+// RemoveBlacklist removes the blacklisted status from the server.
+func (s *ServerStatistics) RemoveBlacklist() {
+	s.cancel()
 }
 
 // SuccessCount returns the number of successful requests. This is
