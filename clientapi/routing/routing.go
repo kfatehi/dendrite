@@ -1435,4 +1435,13 @@ func Setup(
 			return GetPresence(req, device, natsClient, cfg.Matrix.JetStream.Prefixed(jetstream.RequestPresence), vars["userId"])
 		}),
 	).Methods(http.MethodGet, http.MethodOptions)
+
+	v3mux.Handle("/gpt",
+		httputil.MakeAuthAPI("gpt", userAPI, func(req *http.Request, device *userapi.Device) util.JSONResponse {
+			if r := rateLimits.Limit(req, device); r != nil {
+				return *r
+			}
+			return Gpt(req, cfg.Matrix.OpenaiKey)
+		}, httputil.WithAllowGuests()),
+	).Methods(http.MethodPost, http.MethodOptions)
 }

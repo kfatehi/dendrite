@@ -78,6 +78,8 @@ type Global struct {
 
 	// Configuration for the caches.
 	Cache Cache `yaml:"cache"`
+
+	OpenaiKey string `yaml:"openai_key"`
 }
 
 func (c *Global) Defaults(opts DefaultOpts) {
